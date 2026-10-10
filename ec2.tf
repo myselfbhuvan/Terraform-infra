@@ -5,7 +5,7 @@ resource "aws_security_group" "All-traffic-dockerSG" {
   vpc_id = aws_vpc.DockerVpc.id
 
   tags = {
-    Name = "All-traffic-DockerSG"
+    Name = "STR-traffic-SG"
   }
 }
 
@@ -53,7 +53,7 @@ resource "aws_instance" "Docker-ec2-1" {
 
   user_data = file(var.user_data_path)
   tags = {
-    Name = "Docker-ec2-1"
+    Name = "Str-1"
   }
 }
 
@@ -68,7 +68,7 @@ resource "aws_instance" "Docker-ec2-2" {
 
   user_data = file(var.user_data_path)
   tags = {
-    Name = "Docker-ec2-2"
+    Name = "Str-2"
   }
 }
 

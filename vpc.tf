@@ -3,7 +3,7 @@ resource "aws_vpc" "DockerVpc" {
   instance_tenancy = "default"
 
   tags = {
-    Name = "Dockervpc"
+    Name = "Strvpc"
   }
 }
 
@@ -32,7 +32,7 @@ resource "aws_internet_gateway" "IGW" {
     vpc_id = aws_vpc.DockerVpc.id
 
     tags = {
-      Name = "Dockervpc-IGW"
+      Name = "Strvpc-IGW"
     }
   
 }
@@ -47,7 +47,7 @@ resource "aws_route_table" "DockerVpc-RT" {
   }
 
   tags = {
-    Name = "DockerVpc-RT"
+    Name = "StrVpc-RT"
 
 
 
