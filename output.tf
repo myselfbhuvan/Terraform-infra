@@ -1,9 +1,7 @@
-output "portfolio_public_ip" {
-  description = "Public IP address of the portfolio EC2 instance"
-  value       = aws_instance.portfolio.public_ip
+output "Docker-instance1-public-ip" {
+  value = aws_instance.Docker-ec2-1.public_ip
 }
 
-output "portfolio_url" {
-  description = "URL to access the portfolio"
-  value       = "http://${aws_instance.portfolio.public_ip}"
+output "Docker-instance2-public-ip" {
+  value = aws_instance.Docker-ec2-2.public_ip
 }

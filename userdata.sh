@@ -1,13 +1,8 @@
 #!/bin/bash
-
-# Update the server packages
+#update and Install docker as well as start docker
 dnf update -y
-
-# Install Docker
 dnf install -y docker
-
-# Start Docker and enable it after reboot
-systemctl enable --now docker
-
-# Allow ec2-user to run Docker without sudo
+systemctl start docker
+systemctl enable docker
 usermod -aG docker ec2-user
+

@@ -1,59 +1,74 @@
-# Find the latest Amazon Linux 2023 AMI
-data "aws_ssm_parameter" "al2023_ami" {
-  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
-}
-
-# SSH key used to access the EC2 instance
-resource "aws_key_pair" "portfolio" {
-  key_name   = "bhuvanesh-portfolio-key"
-  public_key = file(pathexpand("~/.ssh/bhuvanesh-portfolio.pub"))
-}
-
-# Security group for the portfolio server
-resource "aws_security_group" "portfolio" {
-  name        = "bhuvanesh-portfolio-sg"
-  description = "Security group for Bhuvanesh portfolio"
-  vpc_id      = data.aws_vpc.default.id
-
-  # Allow visitors to access the portfolio
-  ingress {
-    description = "HTTP"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow SSH only from my current IP
-  ingress {
-    description = "SSH from my IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["14.195.132.38/32"]
-  }
-
-  # Allow the server to make outbound connections
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# EC2 server that will host the portfolio
-resource "aws_instance" "portfolio" {
-  ami                    = data.aws_ssm_parameter.al2023_ami.value
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnet.portfolio.id
-  key_name               = aws_key_pair.portfolio.key_name
-  vpc_security_group_ids = [aws_security_group.portfolio.id]
-
-  # Install Docker automatically when the server starts
-  user_data = file("${path.module}/userdata.sh")
+#Security Group
+resource "aws_security_group" "All-traffic-dockerSG" {
+  name = "All-traffic-DockerSG"
+  description = "Allow all traffic inbound"
+  vpc_id = aws_vpc.DockerVpc.id
 
   tags = {
-    Name = "bhuvanesh-portfolio"
+    Name = "All-traffic-DockerSG"
   }
 }
+
+#Ingress rules
+resource "aws_vpc_security_group_ingress_rule" "allow_http" {
+  security_group_id = aws_security_group.All-traffic-dockerSG.id
+  cidr_ipv4 = "0.0.0.0/0"
+  from_port = 80
+  ip_protocol = "tcp"
+  to_port =  80
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_https" {
+  security_group_id = aws_security_group.All-traffic-dockerSG.id
+  cidr_ipv4 = "0.0.0.0/0"
+  from_port = 443
+  ip_protocol = "tcp"
+  to_port = 443
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh" {
+  security_group_id = aws_security_group.All-traffic-dockerSG.id
+  cidr_ipv4 = "0.0.0.0/0"
+  from_port = 22
+  ip_protocol = "tcp"
+  to_port = 22
+}
+
+#Egress rule
+resource "aws_vpc_security_group_egress_rule" "allow_all_traffic_ipv4" {
+  security_group_id = aws_security_group.All-traffic-dockerSG.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1" # semantically equivalent to all ports
+}
+
+
+#Docker Ec2-1
+resource "aws_instance" "Docker-ec2-1" {
+  ami = "ami-0d27e0fb3bac4d724"
+  subnet_id = aws_subnet.Subnet1-Public.id
+  instance_type = "t3.micro"
+  key_name = "bhuvanesh-portfolio-key"
+  vpc_security_group_ids = [aws_security_group.All-traffic-dockerSG.id]
+  associate_public_ip_address = true
+
+  user_data = file(var.user_data_path)
+  tags = {
+    Name = "Docker-ec2-1"
+  }
+}
+
+#Docker Ec2-2
+resource "aws_instance" "Docker-ec2-2" {
+  ami = "ami-0d27e0fb3bac4d724"
+  subnet_id = aws_subnet.Subnet2-Public.id
+  instance_type = "t3.micro"
+  key_name = "bhuvanesh-portfolio-key"
+  vpc_security_group_ids = [aws_security_group.All-traffic-dockerSG.id]
+  associate_public_ip_address = true
+
+  user_data = file(var.user_data_path)
+  tags = {
+    Name = "Docker-ec2-2"
+  }
+}
+
